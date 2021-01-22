@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: jenkins
+  namespace: jenkins
+  labels:
+    app: jenkins
+    project: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+      tier: jenkins
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+       maxUnavailable: 50%
+       maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: jenkins
+        tier: jenkins
+        project: jenkins
+    spec:
+      containers:
+        - name: jenkins
+          image: jenkins/jenkins:latest
+          env:
+            - name: JAVA_OPTS
+              value: -Djenkins.install.runSetupWizard=true
+          ports:
+            - name: http-port
+              containerPort: 8080
+          volumeMounts:
+            - name: jenkins-home
+              mountPath: /var/jenkins_home
+      volumes:
+      - name: jenkins-home
+        hostPath:
+          path: /mnt/app/jenkins
